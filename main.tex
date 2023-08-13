@@ -1,0 +1,155 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{booktabs} % for nice tables
+
+\title{Pokemon Card Grade EV}
+\author{Quang Bui}
+\date{August 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Grading}
+
+The market value of a Pokemon card depends on its rarity, demand, and condition. When the condition of a card is evaluated by a professional card grader, it is assigned a numeric grade reflecting the card's condition. This grade, along with the card, is permanently sealed inside a thick acrylic slab. Grading scales vary among professional card graders. For instance, Professional Sports Authenticator (PSA) grades cards using whole integers between 1 and 10 as well as 1.5, with 10 representing a \textit{GEM-MINT} card. Conversely, Beckett Grading Services (BGS) grades between 1 to 10 in half-point increments. Although the grading scales vary among graders, the term \textit{GEM-MINT} is generally used by graders to indicate that the card is in perfect or near-perfect condition. The market value of a \textit{GEM-MINT} card is generally higher than that of the same card when ungraded card. A card graded below \textit{GEM-MINT} may not necessarily sell for more than their ungraded counterpart. This is because an ungraded card has the potential to achieve a \textit{GEM-MINT} grade with less effort than re-grading an already graded card. Re-grading involves physically breaking the acrylic slab, which risks damaging the card.
+
+\section{Variables and Data}
+
+We are interested in calculating the expected PSA grade of a card and will focus on the Japanese \textit{Pikachu 61} cards from the 2017 Pokemon Card Festa. Let $G$ represent the grade of the card,
+
+$$G = Grade\ of\ Pikachu\ 61$$
+
+where $G$ can take on any integer value between 1 and 10 as well as the value 1.5,
+
+$$G \in \{1, 1.5, 2, \ldots, 10\}$$
+
+with probabilities $p_{i \in \{1, 2, \dots, 11\}}$. The probability that the card is graded $G$ comes from a probability mass function (PMF), which can be derived from PSA's \textit{population report}.
+
+\begin{table}[!h]
+    \begin{minipage}{\textwidth}
+        \begin{center}
+            \begin{tabular}{ |c|c|c|c|c|c|c|c|c|c|c|c| } 
+                \hline
+                $G$ & 1 & 1.5 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
+                \hline
+                Count & 0 & 0 & 0 & 3 & 1 & 11 & 19 & 24 & 42 & 276 & 1336 \\
+                $P(G)$ & 0 & 0 & 0 & 0.002 & 0.001 & 0.006 & 0.011 & 0.014 & 0.025 & 0.161 & 0.78 \\
+                \hline
+            \end{tabular}
+            \caption{\label{psa-pop-tbl}PSA population report for the \textit{Pikachu 61} card. The probability of each grade is calculated by dividing the grade count by the total count.}
+        \end{center}
+    \end{minipage}
+\end{table}
+
+The expected PSA grade for a \textit{Pikachu 61} is calculated by multiplying each grade's probability by its respective grade, then summing these products across all grades,
+
+\begin{align*}
+    E(G) &= \sum_{i = 1}^{n} g_i \times p_i \\
+         &= g_1 \times p_1 + g_2 \times p_2 + \dots + g_{10} \times p_{11} \\
+         &= 1 \times 0 + 1.5 \times 0 + 2 \times 0 + \dots + 10 \times 0.78 \\
+         &= 9.653
+\end{align*}
+
+We aim to calculate the expected value (EV) of a \textit{Pikachu 61} to be PSA graded. As the population report contains the latest data of graded cards, we will use the current market value to calculate the EV. Let $X$ represent the current market value (USD) of a \textit{Pikachu 61} with grade $G$,
+
+$$X = Current\ Market\ Value\ of\ Pikachu\ 61\ with\ PSA\ grade\ G$$
+
+The EV of a \textit{Pikachu 61} awaiting PSA grading is calculated by multiplying the current market value of a \textit{Pikachu 61} graded with a PSA $G$ by the probability of it receiving that grade, then summing these products across all grades,
+
+$$E(X) = \sum_{i = 1}^{n} x_i \times p_i$$
+
+The most recent sale price data was collected from eBay and are used to represent the current market value of a graded \textit{Pikachu 61}.
+
+\begin{table}[!h]
+    \begin{minipage}{\textwidth}
+        \begin{center}
+            \begin{tabular}{ |c|c|c|c|c|c|c|c|c|c|c|c| } 
+                \hline
+                $G$ & 1 & 1.5 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
+                \hline
+                MV & 0 & 0 & 0 & NA & NA & NA & \$129 & \$202\footnote{Missing value imputed with logarithm interpolation.} & \$271 & \$430 & \$1006 \\
+                \hline
+            \end{tabular}
+            \caption{\label{mv-tbl}eBay data containing the most recent sale price for each PSA grade of \textit{Pikachu 61}.}
+        \end{center}
+    \end{minipage}
+\end{table}
+
+No \textit{Pikachu 61} cards graded between 3 and 5 were sold. As these grades represent less than 1\% of all graded \textit{Pikachu 61} cards, and their potential market value is unlikely to be high enough to significantly impact the EV, we have two options: we can either omit them from the EV calculation or set their probabilities to 0. If we choose to omit them, we would need to recalculate each probability excluding grades 3 to 5, but since either approach has a minimal effect on the EV, we opt for the simpler method and set their probabilities to 0.
+
+There were 24 cards that were given a grade of 7, but no sales data was available for these cards. Since the most recent sale price and grade have a non-linear relationship, we used a non-linear interpolator to impute the missing price for cards graded 7. This was done by regressing the log of the most recent sale price against the log of the grade, then taking the exponential of the predicted log of the most recent sale price,
+
+\begin{align*}
+    log(MV) &= \beta_0 + \beta_1 log(grade) + \epsilon
+\end{align*}
+
+Estimate the model,
+
+\begin{align*}
+    \widehat{log(MV)} &= \hat{\beta}_0 + \hat{\beta}_1 log(grade) \\
+                      &= -1.994 + 3.753 log(grade)
+\end{align*}
+
+Predict the log of most recent sale price for a card graded with a 7, then take the exponential\footnote{$e^{\widehat{E(log(MV)|grade)}}$ is not necessarily equal to $\hat{E}(MV|grade)$ due to Jensen's inequality: the expectation of a non-linear transformation of a random variable does not necessarily equal the non-linear transformation of the expectation. To correctly derive $\hat{E}(MV|grade)$ from the estimated model of $log(MV)$, one must estimate the variance of the error term, $\hat{\sigma}^2$. This is then added in the exponential term: $\hat{E}(MV|grade) = e^{ \hat{\beta}_0 + \hat{\beta}_1 log(grade) + \hat{\sigma}^2}$. Given that $\hat{\sigma}^2 = 0.2884^2$, we find that $\hat{E}(MV|grade) = 219.63$.},
+
+\begin{align*}
+    \widehat{log(MV)} &= -1.994 + 3.753 log(7) \\
+                      &= 5.308763 \\
+             \widehat{MV} &=  e^{5.308763} \\
+                      &=  202.10
+\end{align*}
+
+\section{Expected Value}
+
+The data from PSA's population report and eBay's sold listings are used to calculate the EV of a PSA graded \textit{Pikachu 61} card,
+
+\begin{align*}
+    E(X) &= \sum_{i = 1}^{11} x_i \times p_i \\
+         &= 0.011 \times 129 + 0.014 \times 202 + \dots + 0.78 \times 1006 \\
+         &= 864.93
+\end{align*}
+
+How would the EV change if we included cards graded between 3 and 5? We would need to assume a price for these grades to calculate the EV. Assuming prices of \$70, \$80, and \$100 respectively, the EV would increase by 0.82c.
+
+Assume an ungraded card was freshly opened from a booster pack, and we are certain it will receive a grade of at least 8; any potential issue would likely stem from the manufacturing process, such as image mis-centering, but wouldn't be significant enough to grade the card below 8.
+
+To calculate the EV of a \textit{Pikachu 61} card that is certain to receive a grade of at least 8, we refer back to the population report, focusing only on grades 8 and above. Probabilities are then recalculated based on this narrowed grade range.
+
+\begin{table}[!h]
+    \begin{minipage}{\textwidth}
+        \begin{center}
+            \begin{tabular}{ |c|c|c|c| } 
+                \hline
+                $G$ & 8 & 9 & 10 \\
+                \hline
+                Count & 42 & 276 & 1336 \\
+                \hline
+                $P(G|G \geq 8)$ & 0.025 & 0.167 & 0.808 \\
+                \hline
+            \end{tabular}
+            \caption{\label{cond-prob-tbl}PSA population report of \textit{Pikachu 61} for grades 8 and above, with conditional probabilities.}
+        \end{center}
+    \end{minipage}
+\end{table}
+
+The conditional probabilities from Table \ref{cond-prob-tbl} and the current market values from Table \ref{mv-tbl} are used to calculate the conditional EV for a \textit{Pikachu 61} awaiting grading,
+
+\begin{align*}
+    E(X|G \geq 8) &= \sum_{j = 1}^{3} x_j \times p_j \\
+                  &= 42 \times 0.025 + 276 \times 0.167 + 1336 \times 0.808 \\
+                  &= 1126.63
+\end{align*}
+
+\section{Caveats}
+
+\begin{itemize}
+    \item The date of the most recent sale price varies among the graded \textit{Pikachu 61} cards.
+    \item A log-log functional form was used for logarithm interpolation with only $log(grade)$ as the explanatory variable. Including additional explanatory variables, such as $log(grade)^2$, might improve the model's fit to the data.
+    \item The difference between the most recent sale price and the second-last sale price for a PSA 10 \textit{Pikachu 61} is \$248.
+    \item The price a buyer is willing to pay for two equivalent items can depend on the reputation of the eBay seller.  
+    \item Aspects of time have not been considered. The frequency of grading increases over time, which could impact the card's value. Additionally, the distribution of grades changes with time.
+\end{itemize}
+
+\end{document}
